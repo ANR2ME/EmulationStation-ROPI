@@ -74,25 +74,6 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			mWindow->pushGui(s);
 	});
 
-	addEntry("SOUND SETTINGS", 0x777777FF, true, 
-		[this] {
-			auto s = new GuiSettings(mWindow, "SOUND SETTINGS");
-
-			// volume
-			auto volume = std::make_shared<SliderComponent>(mWindow, 0.f, 100.f, 1.f, "%");
-			volume->setValue((float)VolumeControl::getInstance()->getVolume());
-			s->addWithLabel("SYSTEM VOLUME", volume);
-			s->addSaveFunc([volume] { VolumeControl::getInstance()->setVolume((int)round(volume->getValue())); });
-			
-			// disable sounds
-			auto sounds_enabled = std::make_shared<SwitchComponent>(mWindow);
-			sounds_enabled->setState(Settings::getInstance()->getBool("EnableSounds"));
-			s->addWithLabel("ENABLE SOUNDS", sounds_enabled);
-			s->addSaveFunc([sounds_enabled] { Settings::getInstance()->setBool("EnableSounds", sounds_enabled->getState()); });
-
-			mWindow->pushGui(s);
-	});
-
 	addEntry("UI SETTINGS", 0x777777FF, true,
 		[this] {
 		auto s = new GuiSettings(mWindow, "UI SETTINGS");
@@ -118,12 +99,6 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 		framerate->setState(Settings::getInstance()->getBool("DrawFramerate"));
 		s->addWithLabel("SHOW FRAMERATE", framerate);
 		s->addSaveFunc([framerate] { Settings::getInstance()->setBool("DrawFramerate", framerate->getState()); });
-
-		// Network Icons
-		auto show_network = std::make_shared<SwitchComponent>(mWindow);
-		show_network->setState(Settings::getInstance()->getBool("ShowNetwork"));
-		s->addWithLabel("SHOW NETWORK ICONS", show_network);
-		s->addSaveFunc([show_network] { Settings::getInstance()->setBool("ShowNetwork", show_network->getState()); });
 
 			// show help
 			auto show_help = std::make_shared<SwitchComponent>(mWindow);
@@ -178,6 +153,24 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			mWindow->pushGui(s);
 	});
 
+	addEntry("OTHER SETTINGS", 0x777777FF, true,
+		[this] {
+		auto s = new GuiSettings(mWindow, "OTHER SETTINGS");
+		
+		// gamelists
+		auto save_gamelists = std::make_shared<SwitchComponent>(mWindow);
+		save_gamelists->setState(Settings::getInstance()->getBool("SaveGamelistsOnExit"));
+		s->addWithLabel("SAVE METADATA ON EXIT", save_gamelists);
+		s->addSaveFunc([save_gamelists] { Settings::getInstance()->setBool("SaveGamelistsOnExit", save_gamelists->getState()); });
+
+		auto parse_gamelists = std::make_shared<SwitchComponent>(mWindow);
+		parse_gamelists->setState(Settings::getInstance()->getBool("ParseGamelistOnly"));
+		s->addWithLabel("PARSE GAMESLISTS ONLY", parse_gamelists);
+		s->addSaveFunc([parse_gamelists] { Settings::getInstance()->setBool("ParseGamelistOnly", parse_gamelists->getState()); });
+		
+		mWindow->pushGui(s);
+	});
+
 	addEntry("CONFIGURE INPUT", 0x777777FF, true, 
 		[this] { 
 			mWindow->pushGui(new GuiDetectDevice(mWindow, false, nullptr));
@@ -187,14 +180,6 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 	addEntry("SYSTEM", 0x777777FF, true, [this] {
 		mWindow->pushGui(new GuiSystemSettings(mWindow));
 	});
-
-
-	//addEntry("SYNC NEW 360 CONTROLLER", 0x777777FF, true,
-	//	[this] {
-	//	system("python /home/pi/360rf/sync.py");
-	//	mWindow->pushGui(new GuiMsgBox(mWindow, "Sync started, turn on controller and hit the sync button.", "Ok", nullptr));
-	//});
-
 
 	addEntry("QUIT", 0x777777FF, true, 
 		[this] {
