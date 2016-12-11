@@ -1,4 +1,3 @@
-
 #include "EmulationStation.h"
 #include "guis/GuiWifi.h"
 #include "guis/GuiStorageInfo.h"
@@ -44,25 +43,6 @@ GuiSystemSettings::GuiSystemSettings(Window* window) : GuiComponent(window), mMe
 	// STORAGE >
 
 	// [version]
-
-	addEntry("SYSTEM UPDATE", 0x777777FF, true, [this, window] { 
-
-			auto s = new GuiSettings(mWindow, "SYSTEM UPDATE");
-
-			ComponentListRow row;
-			auto cb = [this] { 
-				system("./systemupdate.sh");
-				SDL_Event ev;
-				ev.type = SDL_QUIT;
-				SDL_PushEvent(&ev);
-			};
-			row.addElement(std::make_shared<TextComponent>(mWindow, "GET LATEST BINARY", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
-			row.makeAcceptInputHandler(cb);
-			s->addRow(row);
-
-
-			mWindow->pushGui(s);
-	});
 
 	/// Change network settings
 	addEntry("NETWORK SETTINGS", 0x777777FF, true, [this, window] {
