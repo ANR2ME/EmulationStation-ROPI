@@ -190,8 +190,8 @@ GuiWifi::GuiWifi(Window* window) : GuiComponent(window), mMenu(window, "NETWORK 
 			char wip[1035];
 
 			// Specific Linux commands. 
-			iwList = popen("iwlist wlan0 scanning | grep 'SSID\\|Frequency\\|Channel\\|IEEE\\|Quality'", "r");
-			wIPP = popen("ifconfig wlan0 | grep 'inet addr'", "r");
+			iwList = popen("sudo iwlist wlan0 scanning | grep 'SSID\\|Frequency\\|Channel\\|IEEE\\|Quality'", "r");
+			wIPP = popen("sudo ifconfig wlan0 | grep 'inet addr'", "r");
 
 			// Variables
 			std::string wSSID;
@@ -264,70 +264,7 @@ GuiWifi::GuiWifi(Window* window) : GuiComponent(window), mMenu(window, "NETWORK 
 			mWindow->pushGui(s);
 	});
 
-	addEntry("SHOW ETHERNET DETAILS", 0x777777FF, true,
-		[this] {
-		// dump iwlist and ifconfig into a memory file through pipe
-		FILE *wIPP;
-		char wip[1035];
-
-		wIPP = popen("ifconfig eth0", "r");
-
-		// Variables
-		std::string wIP;
-		std::string wMac;
-		std::string wRX;
-		std::string wTX;
-
-		// Read the pipe to get info and parse into variables
-		std::string currentLine;
-		std::size_t found;
-
-		// Open up Grepped wlan0 ip file
-		while (fgets(wip, sizeof(wip), wIPP) != NULL) {
-			currentLine = wip;
-
-			// find location of ipv4 address
-			found = currentLine.find("inet addr");
-			if (found != std::string::npos) {
-				// Format string to rip out uneeded data
-				wIP = currentLine;
-				wIP = wIP.substr(found + 10, 42);
-				int trimBcast = wIP.find("Bcast");
-				wIP = wIP.substr(0, trimBcast - 2);
-			}
-
-			found = currentLine.find("HWaddr");
-			if (found != std::string::npos) {
-				wMac = currentLine;
-				wMac = wMac.substr(found + 6, 18);
-			}
-
-			found = currentLine.find("RX bytes");
-			if (found != std::string::npos) {
-				int trim = currentLine.find("\n");
-				wRX = currentLine.substr(0, trim - 2);
-				trim = wRX.find("TX");
-				wTX = wRX.substr(trim);
-				wRX = wRX.substr(0, trim - 1);
-			}
-		}
-
-		auto s = new GuiSettings(mWindow, "CURRENT NETWORK INFO");
-
-		// Build window rows
-		auto show_ip = std::make_shared<TextComponent>(mWindow, "" + wIP, Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
-		s->addWithLabel("IPv4", show_ip);
-
-		auto show_mac = std::make_shared<TextComponent>(mWindow, "" + wMac, Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
-		s->addWithLabel("MAC", show_mac);
-
-		auto show_data = std::make_shared<TextComponent>(mWindow, "" + wRX + "\n     " + wTX + ")", Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
-		show_data->setAlignment(ALIGN_CENTER);
-		s->addWithLabel("DATA", show_data);
-
-		mWindow->pushGui(s);
-	});
-
+	
 	addEntry("TURN WIFI ON/OFF", 0x777777FF, true, [this] {
 		mWindow->pushGui(new GuiMsgBox(mWindow, "Turn Wifi On or Off?", "ON", 
 			[] { system("sudo ifconfig wlan0 up"); },
