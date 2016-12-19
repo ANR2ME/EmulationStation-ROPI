@@ -28,8 +28,6 @@
 GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MENU"), mVersion(window), mNetInfo(window)
 {
 	// MAIN MENU
-
-	// SCRAPER >
 	// SOUND SETTINGS >
 	// UI SETTINGS >
 	// CONFIGURE INPUT >
@@ -39,39 +37,28 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 
 	// [version]
 
-	auto openScrapeNow = [this] { mWindow->pushGui(new GuiScraperStart(mWindow)); };
-	addEntry("SCRAPER", 0x777777FF, true, 
-		[this, openScrapeNow] { 
-			auto s = new GuiSettings(mWindow, "SCRAPER");
+	addEntry("CONFIGURE INPUT", 0x777777FF, true, 
+		[this] {
+			Window* window = mWindow;
+			window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?", "YES",
+				[window] {
+					window->pushGui(new GuiDetectDevice(window, false, nullptr));
+				}, "NO", nullptr)
+			);
+	});
 
-			// scrape from
-			auto scraper_list = std::make_shared< OptionListComponent< std::string > >(mWindow, "SCRAPE FROM", false);
-			std::vector<std::string> scrapers = getScraperList();
-			for(auto it = scrapers.begin(); it != scrapers.end(); it++)
-				scraper_list->add(*it, *it, *it == Settings::getInstance()->getString("Scraper"));
+	addEntry("OPENELEC", 0x777777FF, true,
+		[this] {
+			Window* window = mWindow;
+			window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES",
+				[window] {
+					system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+				}, "NO", nullptr)
+			);
+	}); 
 
-			s->addWithLabel("SCRAPE FROM", scraper_list);
-			s->addSaveFunc([scraper_list] { Settings::getInstance()->setString("Scraper", scraper_list->getSelected()); });
-
-			// scrape ratings
-			auto scrape_ratings = std::make_shared<SwitchComponent>(mWindow);
-			scrape_ratings->setState(Settings::getInstance()->getBool("ScrapeRatings"));
-			s->addWithLabel("SCRAPE RATINGS", scrape_ratings);
-			s->addSaveFunc([scrape_ratings] { Settings::getInstance()->setBool("ScrapeRatings", scrape_ratings->getState()); });
-
-			// scrape now
-			ComponentListRow row;
-			std::function<void()> openAndSave = openScrapeNow;
-			openAndSave = [s, openAndSave] { s->save(); openAndSave(); };
-			row.makeAcceptInputHandler(openAndSave);
-
-			auto scrape_now = std::make_shared<TextComponent>(mWindow, "SCRAPE NOW", Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
-			auto bracket = makeArrow(mWindow);
-			row.addElement(scrape_now, true);
-			row.addElement(bracket, false);
-			s->addRow(row);
-
-			mWindow->pushGui(s);
+	addEntry("SYSTEM", 0x777777FF, true, [this] {
+		mWindow->pushGui(new GuiSystemSettings(mWindow));
 	});
 
 	addEntry("UI SETTINGS", 0x777777FF, true,
@@ -153,33 +140,6 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			mWindow->pushGui(s);
 	});
 
-	addEntry("OTHER SETTINGS", 0x777777FF, true,
-		[this] {
-		auto s = new GuiSettings(mWindow, "OTHER SETTINGS");
-		
-		// gamelists
-		auto save_gamelists = std::make_shared<SwitchComponent>(mWindow);
-		save_gamelists->setState(Settings::getInstance()->getBool("SaveGamelistsOnExit"));
-		s->addWithLabel("SAVE METADATA ON EXIT", save_gamelists);
-		s->addSaveFunc([save_gamelists] { Settings::getInstance()->setBool("SaveGamelistsOnExit", save_gamelists->getState()); });
-
-		auto parse_gamelists = std::make_shared<SwitchComponent>(mWindow);
-		parse_gamelists->setState(Settings::getInstance()->getBool("ParseGamelistOnly"));
-		s->addWithLabel("PARSE GAMESLISTS ONLY", parse_gamelists);
-		s->addSaveFunc([parse_gamelists] { Settings::getInstance()->setBool("ParseGamelistOnly", parse_gamelists->getState()); });
-		
-		mWindow->pushGui(s);
-	});
-
-	addEntry("CONFIGURE INPUT", 0x777777FF, true, 
-		[this] { 
-			mWindow->pushGui(new GuiDetectDevice(mWindow, false, nullptr));
-	});
-
-
-	addEntry("SYSTEM", 0x777777FF, true, [this] {
-		mWindow->pushGui(new GuiSystemSettings(mWindow));
-	});
 
 	addEntry("QUIT", 0x777777FF, true, 
 		[this] {
