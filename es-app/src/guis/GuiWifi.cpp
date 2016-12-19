@@ -341,3 +341,4 @@ std::vector<HelpPrompt> GuiWifi::getHelpPrompts()
 	prompts.push_back(HelpPrompt("start", "close"));
 	return prompts;
 }
+
