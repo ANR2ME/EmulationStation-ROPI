@@ -42,8 +42,6 @@ GuiSystemSettings::GuiSystemSettings(Window* window) : GuiComponent(window), mMe
 	// NETWORK SETTINGS >
 	// STORAGE >
 
-	// [version]
-
 	/// Change network settings
 	addEntry("NETWORK SETTINGS", 0x777777FF, true, [this, window] {
 		mWindow->pushGui(new GuiWifi(mWindow));
@@ -53,15 +51,67 @@ GuiSystemSettings::GuiSystemSettings(Window* window) : GuiComponent(window), mMe
 		mWindow->pushGui(new GuiEmulatorList(window));
 	});
 
+	addEntry("OTHER SETTINGS", 0x777777FF, true,
+		[this] {
+		auto s = new GuiSettings(mWindow, "OTHER SETTINGS");
+		
+		// gamelists
+		auto save_gamelists = std::make_shared<SwitchComponent>(mWindow);
+		save_gamelists->setState(Settings::getInstance()->getBool("SaveGamelistsOnExit"));
+		s->addWithLabel("SAVE METADATA ON EXIT", save_gamelists);
+		s->addSaveFunc([save_gamelists] { Settings::getInstance()->setBool("SaveGamelistsOnExit", save_gamelists->getState()); });
+
+		auto parse_gamelists = std::make_shared<SwitchComponent>(mWindow);
+		parse_gamelists->setState(Settings::getInstance()->getBool("ParseGamelistOnly"));
+		s->addWithLabel("PARSE GAMESLISTS ONLY", parse_gamelists);
+		s->addSaveFunc([parse_gamelists] { Settings::getInstance()->setBool("ParseGamelistOnly", parse_gamelists->getState()); });
+		
+		mWindow->pushGui(s);
+	});
+			
+	auto openScrapeNow = [this] { mWindow->pushGui(new GuiScraperStart(mWindow)); };
+	addEntry("SCRAPER", 0x777777FF, true, 
+		[this, openScrapeNow] { 
+			auto s = new GuiSettings(mWindow, "SCRAPER");
+
+			// scrape from
+			auto scraper_list = std::make_shared< OptionListComponent< std::string > >(mWindow, "SCRAPE FROM", false);
+			std::vector<std::string> scrapers = getScraperList();
+			for(auto it = scrapers.begin(); it != scrapers.end(); it++)
+				scraper_list->add(*it, *it, *it == Settings::getInstance()->getString("Scraper"));
+
+			s->addWithLabel("SCRAPE FROM", scraper_list);
+			s->addSaveFunc([scraper_list] { Settings::getInstance()->setString("Scraper", scraper_list->getSelected()); });
+
+			// scrape ratings
+			auto scrape_ratings = std::make_shared<SwitchComponent>(mWindow);
+			scrape_ratings->setState(Settings::getInstance()->getBool("ScrapeRatings"));
+			s->addWithLabel("SCRAPE RATINGS", scrape_ratings);
+			s->addSaveFunc([scrape_ratings] { Settings::getInstance()->setBool("ScrapeRatings", scrape_ratings->getState()); });
+
+			// scrape now
+			ComponentListRow row;
+			std::function<void()> openAndSave = openScrapeNow;
+			openAndSave = [s, openAndSave] { s->save(); openAndSave(); };
+			row.makeAcceptInputHandler(openAndSave);
+
+			auto scrape_now = std::make_shared<TextComponent>(mWindow, "SCRAPE NOW", Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
+			auto bracket = makeArrow(mWindow);
+			row.addElement(scrape_now, true);
+			row.addElement(bracket, false);
+			s->addRow(row);
+
+			mWindow->pushGui(s);
+	});
+
 	/// See storage on internal memory card.
 	addEntry("STORAGE", 0x777777FF, true, [this] {
 		mWindow->pushGui(new GuiStorageInfo(mWindow));
 	});
 
-
 	mVersion.setFont(Font::get(FONT_SIZE_SMALL));
 	mVersion.setColor(0xAAAAFFFF);
-	mVersion.setText("BUILD " + strToUpper(PROGRAM_BUILT_STRING));
+	mVersion.setText("BUILD " + strToUpper(PROGRAM_VERSION_STRING));
 	mVersion.setAlignment(ALIGN_CENTER);
 
 	addChild(&mMenu);
