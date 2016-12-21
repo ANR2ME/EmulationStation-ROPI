@@ -37,18 +37,149 @@
 GuiSystemSettings::GuiSystemSettings(Window* window) : GuiComponent(window), mMenu(window, "SYSTEM SETTINGS"), mVersion(window)
 {
 	// SYSTEM SETTINGS
-
-	// UPDATES >
+	// AUDIO SETTINGS >
 	// NETWORK SETTINGS >
-	// STORAGE >
+	// DISPLAY SETTINGS >
+	// OTHER SETTINGS >
+	// UI SETTINGS >
 
+addEntry("AUDIO SETTINGS", 0x777777FF, true,
+		[this] {
+			auto s = new GuiSettings(mWindow, "AUDIO SETTINGS");
+			
+			Window* window = mWindow;
+
+			ComponentListRow row;
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY DISABLE BACKGROUND MUSIC?", "YES", 
+				[] { 
+					system("/home/pi/RetroPie/music/disablebgmusic.sh >/dev/null 2>&1");
+					
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "DISABLE BACKGROUND MUSIC", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY ENABLE BACKGROUND MUSIC?", "YES", 
+				[] { 
+					system("/home/pi/RetroPie/music/enablebgmusic.sh >/dev/null 2>&1");
+
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "ENABLE BACKGROUND MUSIC", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			mWindow->pushGui(s);
+	});
 	/// Change network settings
 	addEntry("NETWORK SETTINGS", 0x777777FF, true, [this, window] {
 		mWindow->pushGui(new GuiWifi(mWindow));
 	});
 
-	addEntry("EMULATORS", 0x777777FF, true, [this, window] {
-		mWindow->pushGui(new GuiEmulatorList(window));
+addEntry("DISPLAY SETTINGS", 0x777777FF, true,
+		[this] {
+			auto s = new GuiSettings(mWindow, "DISPLAY SETTINGS");
+			
+			Window* window = mWindow;
+
+			ComponentListRow row;
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 480i AND RESTART?", "YES", 
+				[] { 
+					system("sudo h3disp -m 0 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+					
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "480i", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 576i AND RESTART?", "YES", 
+				[] { 
+					system("sudo h3disp -m 1 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "576i", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 720P AND RESTART?", "YES",
+				[window] {
+					system("sudo h3disp -m 5 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "720P", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 1080P AND RESTART?", "YES", 
+				[] { 
+					system("sudo h3disp -m 10 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "1080P", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 1080i AND RESTART?", "YES", 
+				[] { 
+					system("sudo h3disp -m 7 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "1080i", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 1024x768 AND RESTART?", "YES", 
+				[] { 
+					system("sudo h3disp -m 32 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "1024x768", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 1280x1024 AND RESTART?", "YES", 
+				[] { 
+					system("sudo h3disp -m 33 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "1280x1024", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 1360x768  AND RESTART?", "YES", 
+				[] { 
+					system("sudo h3disp -m 34 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "1360x768 ", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY SET RESOLUTION TO 1440x900  AND RESTART?", "YES", 
+				[] { 
+					system("sudo h3disp -m 35 >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
+
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "1440x900 ", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			mWindow->pushGui(s);
 	});
 
 	addEntry("OTHER SETTINGS", 0x777777FF, true,
@@ -68,41 +199,86 @@ GuiSystemSettings::GuiSystemSettings(Window* window) : GuiComponent(window), mMe
 		
 		mWindow->pushGui(s);
 	});
-			
-	auto openScrapeNow = [this] { mWindow->pushGui(new GuiScraperStart(mWindow)); };
-	addEntry("SCRAPER", 0x777777FF, true, 
-		[this, openScrapeNow] { 
-			auto s = new GuiSettings(mWindow, "SCRAPER");
+	
+		addEntry("UI SETTINGS", 0x777777FF, true,
+		[this] {
+		auto s = new GuiSettings(mWindow, "UI SETTINGS");
 
-			// scrape from
-			auto scraper_list = std::make_shared< OptionListComponent< std::string > >(mWindow, "SCRAPE FROM", false);
-			std::vector<std::string> scrapers = getScraperList();
-			for(auto it = scrapers.begin(); it != scrapers.end(); it++)
-				scraper_list->add(*it, *it, *it == Settings::getInstance()->getString("Scraper"));
+		// screensaver time
+		auto screensaver_time = std::make_shared<SliderComponent>(mWindow, 0.f, 30.f, 1.f, "m");
+		screensaver_time->setValue((float)(Settings::getInstance()->getInt("ScreenSaverTime") / (1000 * 60)));
+		s->addWithLabel("SCREENSAVER AFTER", screensaver_time);
+		s->addSaveFunc([screensaver_time] { Settings::getInstance()->setInt("ScreenSaverTime", (int)round(screensaver_time->getValue()) * (1000 * 60)); });
 
-			s->addWithLabel("SCRAPE FROM", scraper_list);
-			s->addSaveFunc([scraper_list] { Settings::getInstance()->setString("Scraper", scraper_list->getSelected()); });
+		// screensaver behavior
+		auto screensaver_behavior = std::make_shared< OptionListComponent<std::string> >(mWindow, "TRANSITION STYLE", false);
+		std::vector<std::string> screensavers;
+		screensavers.push_back("dim");
+		screensavers.push_back("black");
+		for (auto it = screensavers.begin(); it != screensavers.end(); it++)
+			screensaver_behavior->add(*it, *it, Settings::getInstance()->getString("ScreenSaverBehavior") == *it);
+		s->addWithLabel("SCREENSAVER BEHAVIOR", screensaver_behavior);
+		s->addSaveFunc([screensaver_behavior] { Settings::getInstance()->setString("ScreenSaverBehavior", screensaver_behavior->getSelected()); });
 
-			// scrape ratings
-			auto scrape_ratings = std::make_shared<SwitchComponent>(mWindow);
-			scrape_ratings->setState(Settings::getInstance()->getBool("ScrapeRatings"));
-			s->addWithLabel("SCRAPE RATINGS", scrape_ratings);
-			s->addSaveFunc([scrape_ratings] { Settings::getInstance()->setBool("ScrapeRatings", scrape_ratings->getState()); });
+		// framerate
+		auto framerate = std::make_shared<SwitchComponent>(mWindow);
+		framerate->setState(Settings::getInstance()->getBool("DrawFramerate"));
+		s->addWithLabel("SHOW FRAMERATE", framerate);
+		s->addSaveFunc([framerate] { Settings::getInstance()->setBool("DrawFramerate", framerate->getState()); });
 
-			// scrape now
-			ComponentListRow row;
-			std::function<void()> openAndSave = openScrapeNow;
-			openAndSave = [s, openAndSave] { s->save(); openAndSave(); };
-			row.makeAcceptInputHandler(openAndSave);
+			// show help
+			auto show_help = std::make_shared<SwitchComponent>(mWindow);
+			show_help->setState(Settings::getInstance()->getBool("ShowHelpPrompts"));
+			s->addWithLabel("ON-SCREEN HELP", show_help);
+			s->addSaveFunc([show_help] { Settings::getInstance()->setBool("ShowHelpPrompts", show_help->getState()); });
 
-			auto scrape_now = std::make_shared<TextComponent>(mWindow, "SCRAPE NOW", Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
-			auto bracket = makeArrow(mWindow);
-			row.addElement(scrape_now, true);
-			row.addElement(bracket, false);
-			s->addRow(row);
+			// quick system select (left/right in game list view)
+			auto quick_sys_select = std::make_shared<SwitchComponent>(mWindow);
+			quick_sys_select->setState(Settings::getInstance()->getBool("QuickSystemSelect"));
+			s->addWithLabel("QUICK SYSTEM SELECT", quick_sys_select);
+			s->addSaveFunc([quick_sys_select] { Settings::getInstance()->setBool("QuickSystemSelect", quick_sys_select->getState()); });
+
+			// transition style
+			auto transition_style = std::make_shared< OptionListComponent<std::string> >(mWindow, "TRANSITION STYLE", false);
+			std::vector<std::string> transitions;
+			transitions.push_back("fade");
+			transitions.push_back("slide");
+			for(auto it = transitions.begin(); it != transitions.end(); it++)
+				transition_style->add(*it, *it, Settings::getInstance()->getString("TransitionStyle") == *it);
+			s->addWithLabel("TRANSITION STYLE", transition_style);
+			s->addSaveFunc([transition_style] { Settings::getInstance()->setString("TransitionStyle", transition_style->getSelected()); });
+
+			// theme set
+			auto themeSets = ThemeData::getThemeSets();
+
+			if(!themeSets.empty())
+			{
+				auto selectedSet = themeSets.find(Settings::getInstance()->getString("ThemeSet"));
+				if(selectedSet == themeSets.end())
+					selectedSet = themeSets.begin();
+
+				auto theme_set = std::make_shared< OptionListComponent<std::string> >(mWindow, "THEME SET", false);
+				for(auto it = themeSets.begin(); it != themeSets.end(); it++)
+					theme_set->add(it->first, it->first, it == selectedSet);
+				s->addWithLabel("THEME SET", theme_set);
+
+				Window* window = mWindow;
+				s->addSaveFunc([window, theme_set] 
+				{
+					bool needReload = false;
+					if(Settings::getInstance()->getString("ThemeSet") != theme_set->getSelected())
+						needReload = true;
+
+					Settings::getInstance()->setString("ThemeSet", theme_set->getSelected());
+
+					if(needReload)
+						ViewController::get()->reloadAll(); // TODO - replace this with some sort of signal-based implementation
+				});
+			}
 
 			mWindow->pushGui(s);
-	});
+	});		
+	
 
 	/// See storage on internal memory card.
 	addEntry("STORAGE", 0x777777FF, true, [this] {
