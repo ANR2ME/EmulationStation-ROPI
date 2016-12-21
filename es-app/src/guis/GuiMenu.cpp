@@ -1,5 +1,6 @@
 #include "EmulationStation.h"
 #include "guis/GuiMenu.h"
+#include "guis/GuiEmulatorList.h"
 #include "guis/GuiWifi.h"
 #include "guis/GuiSystemSettings.h"
 #include "Window.h"
@@ -28,10 +29,9 @@
 GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MENU"), mVersion(window), mNetInfo(window)
 {
 	// MAIN MENU
-	// SOUND SETTINGS >
-	// UI SETTINGS >
 	// CONFIGURE INPUT >
-	// NETWORK SETTINGS >
+	// APPS >
+	// EMULATORS >
 	// SYSTEM >
 	// QUIT >
 
@@ -47,99 +47,78 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 			);
 	});
 
-	addEntry("OPENELEC", 0x777777FF, true,
+	addEntry("APPS", 0x777777FF, true,
 		[this] {
+			auto s = new GuiSettings(mWindow, "APPS");
+			
 			Window* window = mWindow;
-			window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES",
-				[window] {
+
+			ComponentListRow row;
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "REALLY START ARMBIAN DESKTOP?", "YES", 
+				[] { 
+					system("export LD_LIBRARY_PATH=/usr/local && startx > /dev/null 2>&1");
+					
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "DESKTOP", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
+
+			row.elements.clear();
+			row.makeAcceptInputHandler([window] {
+				window->pushGui(new GuiMsgBox(window, "ARE YOU SURE YOU WANT TO LAUNCH OPENELEC?", "YES", 
+				[] { 
 					system("sudo mkimage -C none -A arm -T script -d /boot/boot.kodi.cmd /boot/boot.scr >/dev/null 2>&1 && sudo reboot >/dev/null 2>&1");
-				}, "NO", nullptr)
-			);
-	}); 
 
-	addEntry("SYSTEM", 0x777777FF, true, [this] {
-		mWindow->pushGui(new GuiSystemSettings(mWindow));
-	});
-
-	addEntry("UI SETTINGS", 0x777777FF, true,
-		[this] {
-		auto s = new GuiSettings(mWindow, "UI SETTINGS");
-
-		// screensaver time
-		auto screensaver_time = std::make_shared<SliderComponent>(mWindow, 0.f, 30.f, 1.f, "m");
-		screensaver_time->setValue((float)(Settings::getInstance()->getInt("ScreenSaverTime") / (1000 * 60)));
-		s->addWithLabel("SCREENSAVER AFTER", screensaver_time);
-		s->addSaveFunc([screensaver_time] { Settings::getInstance()->setInt("ScreenSaverTime", (int)round(screensaver_time->getValue()) * (1000 * 60)); });
-
-		// screensaver behavior
-		auto screensaver_behavior = std::make_shared< OptionListComponent<std::string> >(mWindow, "TRANSITION STYLE", false);
-		std::vector<std::string> screensavers;
-		screensavers.push_back("dim");
-		screensavers.push_back("black");
-		for (auto it = screensavers.begin(); it != screensavers.end(); it++)
-			screensaver_behavior->add(*it, *it, Settings::getInstance()->getString("ScreenSaverBehavior") == *it);
-		s->addWithLabel("SCREENSAVER BEHAVIOR", screensaver_behavior);
-		s->addSaveFunc([screensaver_behavior] { Settings::getInstance()->setString("ScreenSaverBehavior", screensaver_behavior->getSelected()); });
-
-		// framerate
-		auto framerate = std::make_shared<SwitchComponent>(mWindow);
-		framerate->setState(Settings::getInstance()->getBool("DrawFramerate"));
-		s->addWithLabel("SHOW FRAMERATE", framerate);
-		s->addSaveFunc([framerate] { Settings::getInstance()->setBool("DrawFramerate", framerate->getState()); });
-
-			// show help
-			auto show_help = std::make_shared<SwitchComponent>(mWindow);
-			show_help->setState(Settings::getInstance()->getBool("ShowHelpPrompts"));
-			s->addWithLabel("ON-SCREEN HELP", show_help);
-			s->addSaveFunc([show_help] { Settings::getInstance()->setBool("ShowHelpPrompts", show_help->getState()); });
-
-			// quick system select (left/right in game list view)
-			auto quick_sys_select = std::make_shared<SwitchComponent>(mWindow);
-			quick_sys_select->setState(Settings::getInstance()->getBool("QuickSystemSelect"));
-			s->addWithLabel("QUICK SYSTEM SELECT", quick_sys_select);
-			s->addSaveFunc([quick_sys_select] { Settings::getInstance()->setBool("QuickSystemSelect", quick_sys_select->getState()); });
-
-			// transition style
-			auto transition_style = std::make_shared< OptionListComponent<std::string> >(mWindow, "TRANSITION STYLE", false);
-			std::vector<std::string> transitions;
-			transitions.push_back("fade");
-			transitions.push_back("slide");
-			for(auto it = transitions.begin(); it != transitions.end(); it++)
-				transition_style->add(*it, *it, Settings::getInstance()->getString("TransitionStyle") == *it);
-			s->addWithLabel("TRANSITION STYLE", transition_style);
-			s->addSaveFunc([transition_style] { Settings::getInstance()->setString("TransitionStyle", transition_style->getSelected()); });
-
-			// theme set
-			auto themeSets = ThemeData::getThemeSets();
-
-			if(!themeSets.empty())
-			{
-				auto selectedSet = themeSets.find(Settings::getInstance()->getString("ThemeSet"));
-				if(selectedSet == themeSets.end())
-					selectedSet = themeSets.begin();
-
-				auto theme_set = std::make_shared< OptionListComponent<std::string> >(mWindow, "THEME SET", false);
-				for(auto it = themeSets.begin(); it != themeSets.end(); it++)
-					theme_set->add(it->first, it->first, it == selectedSet);
-				s->addWithLabel("THEME SET", theme_set);
-
-				Window* window = mWindow;
-				s->addSaveFunc([window, theme_set] 
-				{
-					bool needReload = false;
-					if(Settings::getInstance()->getString("ThemeSet") != theme_set->getSelected())
-						needReload = true;
-
-					Settings::getInstance()->setString("ThemeSet", theme_set->getSelected());
-
-					if(needReload)
-						ViewController::get()->reloadAll(); // TODO - replace this with some sort of signal-based implementation
-				});
-			}
+				}, "NO", nullptr));
+			});
+			row.addElement(std::make_shared<TextComponent>(window, "OPENELEC", Font::get(FONT_SIZE_MEDIUM), 0x777777FF), true);
+			s->addRow(row);
 
 			mWindow->pushGui(s);
 	});
 
+	addEntry("EMULATORS", 0x777777FF, true, [this, window] {
+		mWindow->pushGui(new GuiEmulatorList(window));
+	});
+
+	addEntry("SYSTEM", 0x777777FF, true, [this] {
+		mWindow->pushGui(new GuiSystemSettings(mWindow));
+	});
+		auto openScrapeNow = [this] { mWindow->pushGui(new GuiScraperStart(mWindow)); };
+			addEntry("SCRAPER", 0x777777FF, true, 
+			[this, openScrapeNow] { 
+			auto s = new GuiSettings(mWindow, "SCRAPER");
+
+			// scrape from
+			auto scraper_list = std::make_shared< OptionListComponent< std::string > >(mWindow, "SCRAPE FROM", false);
+			std::vector<std::string> scrapers = getScraperList();
+			for(auto it = scrapers.begin(); it != scrapers.end(); it++)
+				scraper_list->add(*it, *it, *it == Settings::getInstance()->getString("Scraper"));
+
+			s->addWithLabel("SCRAPE FROM", scraper_list);
+			s->addSaveFunc([scraper_list] { Settings::getInstance()->setString("Scraper", scraper_list->getSelected()); });
+
+			// scrape ratings
+			auto scrape_ratings = std::make_shared<SwitchComponent>(mWindow);
+			scrape_ratings->setState(Settings::getInstance()->getBool("ScrapeRatings"));
+			s->addWithLabel("SCRAPE RATINGS", scrape_ratings);
+			s->addSaveFunc([scrape_ratings] { Settings::getInstance()->setBool("ScrapeRatings", scrape_ratings->getState()); });
+
+			// scrape now
+			ComponentListRow row;
+			std::function<void()> openAndSave = openScrapeNow;
+			openAndSave = [s, openAndSave] { s->save(); openAndSave(); };
+			row.makeAcceptInputHandler(openAndSave);
+
+			auto scrape_now = std::make_shared<TextComponent>(mWindow, "SCRAPE NOW", Font::get(FONT_SIZE_MEDIUM), 0x777777FF);
+			auto bracket = makeArrow(mWindow);
+			row.addElement(scrape_now, true);
+			row.addElement(bracket, false);
+			s->addRow(row);
+
+			mWindow->pushGui(s);
+	});
 
 	addEntry("QUIT", 0x777777FF, true, 
 		[this] {
@@ -199,6 +178,7 @@ GuiMenu::GuiMenu(Window* window) : GuiComponent(window), mMenu(window, "MAIN MEN
 
 			mWindow->pushGui(s);
 	});
+	
 
 	mVersion.setFont(Font::get(FONT_SIZE_SMALL));
 	mVersion.setColor(0xAAAAFFFF);
