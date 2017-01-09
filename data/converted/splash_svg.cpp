@@ -1,5 +1,7 @@
 //this file was auto-generated from "splash.svg" by res2h
 
+#include "../Resources.h"
+
 const size_t splash_svg_size = 65662;
 const unsigned char splash_svg_data[65662] = {
     0x3c,0x3f,0x78,0x6d,0x6c,0x20,0x76,0x65,0x72,0x73,
