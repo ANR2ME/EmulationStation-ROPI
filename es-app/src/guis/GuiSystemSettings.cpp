@@ -38,7 +38,6 @@ GuiSystemSettings::GuiSystemSettings(Window* window) : GuiComponent(window), mMe
 {
 	// SYSTEM SETTINGS
 	// AUDIO SETTINGS >
-	// NETWORK SETTINGS >
 	// DISPLAY SETTINGS >
 	// OTHER SETTINGS >
 	// UI SETTINGS >
@@ -72,10 +71,6 @@ addEntry("AUDIO SETTINGS", 0x777777FF, true,
 			s->addRow(row);
 
 			mWindow->pushGui(s);
-	});
-	/// Change network settings
-	addEntry("NETWORK SETTINGS", 0x777777FF, true, [this, window] {
-		mWindow->pushGui(new GuiWifi(mWindow));
 	});
 
 addEntry("DISPLAY SETTINGS", 0x777777FF, true,
